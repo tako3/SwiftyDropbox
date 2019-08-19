@@ -152,7 +152,7 @@ open class MobileSharedApplication: SharedApplication {
     public static var sharedMobileApplication: MobileSharedApplication?
 
     let sharedApplication: UIApplication
-    let controller: UIViewController?
+    weak var controller: UIViewController?
     let openURL: ((URL) -> Void)
 
     public init(sharedApplication: UIApplication, controller: UIViewController?, openURL: @escaping ((URL) -> Void)) {
@@ -219,8 +219,14 @@ open class MobileSharedApplication: SharedApplication {
         if let controller = self.controller {
             if let presentedViewController = controller.presentedViewController {
                 if presentedViewController.isBeingDismissed == false && presentedViewController is MobileSafariViewController {
-                    controller.dismiss(animated: true, completion: nil)
+                    controller.dismiss(animated: true) { [weak self] in
+                        self?.controller = nil
+                    }
+                } else {
+                    self.controller = nil
                 }
+            } else {
+                self.controller = nil
             }
         }
     }
